@@ -1,0 +1,62 @@
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: quarkus-pipeline-demo-git-source
+spec:
+  type: git
+  params:
+    - name: revision
+      value: master
+    - name: url
+      value: https://github.com/redhat-developer-demos/quarkus-pipeline-demo
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: greeter-image-native
+spec:
+  type: image
+  params:
+    - name: url
+      value: quay.io/workspace7/pipeline-greeter:native
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: greeter-image-jvm
+spec:
+  type: image
+  params:
+    - name: url
+      value: quay.io/workspace7/pipeline-greeter:jvm
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: greeter-local-image-native
+spec:
+  type: image
+  params:
+    - name: url
+      value: dev.local/pipeline-greeter:native
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: greeter-local-image-jvm
+spec:
+  type: image
+  params:
+    - name: url
+      value: dev.local/pipeline-greeter:jvm
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: m2-cache
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 8Gi

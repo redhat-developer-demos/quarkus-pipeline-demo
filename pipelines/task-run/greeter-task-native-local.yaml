@@ -1,0 +1,17 @@
+apiVersion: tekton.dev/v1alpha1
+kind: TaskRun
+metadata:
+  name: greeter-task-native-run
+spec:
+  taskRef:
+    name: greeter-image-from-git
+  inputs:
+    resources:
+    - name: greeter-git-source
+      resourceRef:
+        name: greeter-git-source
+  outputs:
+    resources:
+    - name: greeterImage
+      resourceRef:
+        name: greeter-image-native
