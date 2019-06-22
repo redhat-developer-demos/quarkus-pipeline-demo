@@ -1,0 +1,194 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: infra
+spec: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb
+  namespace: infra
+spec:
+  selector:
+    app: mariadb
+  ports:
+  - port: 3306
+    targetPort: 3306
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mariadb
+  namespace: infra
+spec:
+  selector:
+    matchLabels:
+      app: mariadb
+  template:
+    metadata:
+      labels:
+        app: mariadb
+    spec:
+      containers:
+      - name: mariadb
+        image: mariadb:bionic
+        env:
+        -  name: "MYSQL_ROOT_PASSWORD"
+           value: "password"
+        -  name: "MYSQL_USER"
+           value: "gogs"
+        -  name: "MYSQL_PASSWORD"
+           value: "gogs"
+        -  name: "MYSQL_DATABASE"
+           value: "gogsdb" 
+        volumeMounts:
+          - name: mariadb-data
+            mountPath: /var/lib/mysql
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+      volumes:
+        - name: mariadb-data
+          persistentVolumeClaim:
+            claimName: gogs-mariadb-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db-adminer
+  namespace: infra
+spec:
+  selector:
+    app: db-adminer
+  ports:
+  - port: 8080
+    targetPort: 8080
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db-adminer
+  namespace: infra
+spec:
+  selector:
+    matchLabels:
+      app: db-adminer
+  template:
+    metadata:
+      labels:
+        app: db-adminer
+    spec:
+      containers:
+      - name: db-adminer
+        image: adminer
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 8080
+---
+kind: Service
+apiVersion: v1
+metadata:
+  annotations:
+    description: The Gogs server's http port
+  labels:
+    app: gogs
+  name: gogs
+  namespace: infra
+spec:
+  ports:
+  - name: 3000-tcp
+    port: 3000
+    protocol: TCP
+    targetPort: 3000
+    nodePort: 30300
+  selector:
+    app: gogs
+  sessionAffinity: None
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gogs
+  namespace: infra
+spec:
+  selector:
+    matchLabels:
+      app: gogs
+  template:
+    metadata:
+      labels:
+        app: gogs
+    spec:
+      containers:
+      - name: gogs
+        image: gogs/gogs:0.11.86
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 3000
+        volumeMounts:
+          - name: gogs-data
+            mountPath: /opt/gogs/data
+        readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+              scheme: HTTP
+            initialDelaySeconds: 3
+            timeoutSeconds: 1
+            periodSeconds: 20
+            successThreshold: 1
+            failureThreshold: 10
+        livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+              scheme: HTTP
+            initialDelaySeconds: 20
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 10
+      volumes:
+        - name: gogs-data
+          persistentVolumeClaim:
+            claimName: gogs-data
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: gogs-data
+  namespace: infra
+  labels:
+    app: gogs
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: gogs-mariadb-data
+  namespace: infra
+  labels:
+    app: mariadb
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

@@ -1,0 +1,80 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: greeter-pipeline-jvm
+spec:
+   resources:
+     - name: source-repo
+       type: git
+     - name: app-container-image
+       type: image
+   params:
+     - name: mavenMirrorUrl
+       default: ""
+       description: The Maven Mirror URL to use for 
+     - name: mavenCmdArgs
+       description: The maven goals to pass to the build
+       default: "clean -DskipTests package"
+     - name: runScript
+       description: The buildah script to run
+       default: "/usr/local/bin/maven-buildah.sh"
+     - name: push
+       default: "true"
+       description: Whether to push the image to container registry
+     - name: contextDir
+       default: /workspace/git-source
+       description: The Docker build context Dir
+     - name: resourceFile
+       description: The path to Kubernetes resource file relative to sources
+       default: "kubernetes/deployment.yaml"
+     - name: yamlPath
+       description: The YAML image path 
+       default: "spec.template.spec.containers[0].image"
+     - name: docs
+       description: The YAML documents where to apply 
+       default: "-d*"
+     - name: namespace
+       description: The Kubernetes Namespace
+       default: "default"
+   tasks:
+    - name: build-greeter-jvm
+      taskRef:
+        name: greeter-image-from-git
+      params:
+      - name: mavenMirrorUrl
+        value: "${params.mavenMirrorUrl}"
+      - name: mavenCmdArgs
+        value: "${params.mavenCmdArgs}"
+      - name: runScript
+        value: "${params.runScript}"
+      - name: push
+        value: "${params.push}"
+      resources:
+        inputs:
+          - name: git-source
+            resource: source-repo
+        outputs:
+          - name: builtImage
+            resource: app-container-image
+    - name: deploy-application
+      taskRef:
+        name: kubectl-task
+      params: 
+      - name: contextDir
+        value: "${params.mavenMirrorUrl}"
+      - name: resourceFile
+        value: "${params.resourceFile}"
+      - name: yamlPath
+        value: "${params.yamlPath}"
+      - name: docs
+        value: "${params.docs}"
+      - name: namespace
+        value: "${params.namespace}"
+      resources:
+        inputs:
+          - name: git-source
+            resource: source-repo
+          - name: containerImage
+            resource: app-container-image
+            from:
+             - build-greeter-jvm

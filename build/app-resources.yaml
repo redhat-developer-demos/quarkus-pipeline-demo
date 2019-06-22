@@ -38,7 +38,8 @@ spec:
   type: image
   params:
     - name: url
-      value: dev.local/pipeline-greeter:native
+      # need to enable registry addon in minikube via minikube addon enable registry
+      value: dev.local/rhdevelopers/pipeline-greeter:native
 ---
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
@@ -48,7 +49,8 @@ spec:
   type: image
   params:
     - name: url
-      value: dev.local/pipeline-greeter:jvm
+      # need to enable registry addon in minikube via minikube addon enable registry
+      value: dev.local/rhdevelopers/pipeline-greeter:jvm
 ---
 kind: PersistentVolumeClaim
 apiVersion: v1
@@ -60,3 +62,16 @@ spec:
   resources:
     requests:
       storage: 8Gi
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: quarkus-pipeline-demo-local-git-source
+spec:
+  type: git
+  params:
+    - name: revision
+      value: master
+    - name: url
+      value: http://192.168.64.113:30300/kameshs/quarkus-pipeline-demo.git
+---
