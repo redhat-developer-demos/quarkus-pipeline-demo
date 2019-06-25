@@ -1,18 +1,26 @@
 apiVersion: serving.knative.dev/v1alpha1
 kind: Service
 metadata:
-  name: pipeline-greeter
+  name: greeter
 spec:
-  runLatest:
-    configuration:
-      revisionTemplate:
-        spec:
-          container:
-            # to make sure new pipeline builds gets new image always
-            imagePullPolicy: Always
-            livenessProbe:
-              httpGet:
-                path: /health
-            readinessProbe:
-              httpGet:
-                path: /health
+  template:
+    metadata:
+      labels:
+        app: greeter
+    spec:
+      containers:
+      - image: "this will be replaced by pipeline"
+        # to make sure new pipeline builds gets new image always
+        imagePullPolicy: Always
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 8080
+        livenessProbe:
+          httpGet:
+            port: 8080
+        readinessProbe:
+          httpGet:
+            path: /health

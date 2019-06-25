@@ -1,0 +1,46 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: demos
+spec: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: build-robot
+  namespace: demos
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: builder
+rules:
+  - apiGroups: [""]
+    resources: ["services", "endpoints", "pods","configmaps","secrets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete","view"]
+  - apiGroups: ["extensions", "apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete","view"]
+  - apiGroups: ["serving.knative.dev"]
+    resources: ["*"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete","view"]
+  - apiGroups: ["eventing.knative.dev"]
+    resources: ["*"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete","view"]
+  - apiGroups: ["sources.eventing.knative.dev"]
+    resources: ["*"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete","view"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: build-robot-role-binding
+subjects:
+- kind: ServiceAccount
+  name: build-robot
+  namespace: demos
+roleRef:
+  kind: ClusterRole 
+  name: builder
+  apiGroup: rbac.authorization.k8s.io

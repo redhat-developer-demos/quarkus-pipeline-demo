@@ -12,7 +12,7 @@ spec:
       default: /workspace/git-source
       description: The Docker build context Dir
     - name: mavenMirrorUrl
-      default: ""
+      default: "https://repo1.maven.org/maven2"
       description: The MAVEN_MIRROR_URL url to use
     - name: mavenCmdArgs
       default: "clean -DskipTests install -Pnative"
@@ -45,12 +45,17 @@ spec:
       args:
        - "${inputs.params.runScript}"
       securityContext:
+        privileged: true
         capabilities:
           add: ["SYS_ADMIN"]
       volumeMounts:
         - mountPath: /root/.m2
           name: m2-cache
+        - name: varlibcontainers
+          mountPath: /var/lib/containers
  volumes:
     - name: m2-cache
       persistentVolumeClaim:
         claimName: m2-cache
+    - name: varlibcontainers
+      emptyDir: {}

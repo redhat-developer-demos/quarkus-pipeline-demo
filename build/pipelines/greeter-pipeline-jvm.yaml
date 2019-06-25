@@ -10,7 +10,7 @@ spec:
        type: image
    params:
      - name: mavenMirrorUrl
-       default: ""
+       default: "https://repo1.mavenorg.maven2"
        description: The Maven Mirror URL to use for 
      - name: mavenCmdArgs
        description: The maven goals to pass to the build

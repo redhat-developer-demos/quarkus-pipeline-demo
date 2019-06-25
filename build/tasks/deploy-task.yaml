@@ -14,8 +14,8 @@ spec:
       default: /workspace/git-source
       description: The Docker build context Dir
     - name: resourceFile
-      description: The path to Kubernetes resource file relative to sources
-      default: "kubernetes/deployment.yaml"
+      description: The path to Kubernetes resource file to create the resources
+      default: "kubernetes/application.yaml"
     - name: yamlPath
       description: The YAML image path 
       default: "spec.template.spec.containers[0].image"
@@ -24,7 +24,7 @@ spec:
       default: "-d*"
     - name: namespace
       description: The Kubernetes Namespace
-      default: "default"
+      default: "demos"
  steps:
     - name: run-yq
       image: quay.io/rhdevelopers/tutorial-tools
@@ -49,5 +49,5 @@ spec:
         - "--namespace"
         - "${inputs.params.namespace}"
         - "--filename"
-        - "${inputs.params.resourceFile}"      
+        - "${inputs.params.resourceFile}"
       workingDir: "${inputs.params.contextDir}"

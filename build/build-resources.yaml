@@ -1,7 +1,8 @@
+---
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:
-  name: quarkus-pipeline-demo-git-source
+  name: demo-git-source
 spec:
   type: git
   params:
@@ -62,16 +63,3 @@ spec:
   resources:
     requests:
       storage: 8Gi
----
-apiVersion: tekton.dev/v1alpha1
-kind: PipelineResource
-metadata:
-  name: quarkus-pipeline-demo-local-git-source
-spec:
-  type: git
-  params:
-    - name: revision
-      value: master
-    - name: url
-      value: http://192.168.64.113:30300/kameshs/quarkus-pipeline-demo.git
----
