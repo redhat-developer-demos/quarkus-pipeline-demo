@@ -9,10 +9,12 @@ spec:
   params:
     - name: namespace
       value: demos
-    - name: resourceDir
-      value: "knative"
-    - name: resourceFile
-      value: "service.yaml"
+    # By default the Kubernetes deployment and service will be created
+    # uncomment this to deploy the service as Knative Service
+    # - name: resourceDir
+    #   value: "knative"
+    # - name: resourceFile
+    #   value: "service.yaml"
   resources:
     - name: source-repo
       resourceRef:

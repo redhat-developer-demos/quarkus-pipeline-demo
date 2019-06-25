@@ -342,6 +342,13 @@ kubectl delete -f $PROJECT_HOME/build/pipelinerun/greeter-pipeline-run.yaml && \
 kubectl apply -f $PROJECT_HOME/build/pipelinerun/greeter-pipeline-run.yaml
 ----
 
+=== Invoke Service
+[source,bash]
+----
+IP_ADDRESS="$(minikube ip):$(kubectl get svc istio-ingressgateway --namespace istio-system --output 'jsonpath={.spec.ports[?(@.port==80)].nodePort}')"
+curl -H "host:greeter.demos.example.com" $IP_ADDRESS/greeter
+----
+
 == Cleanup 
 [source,bash]
 ----
