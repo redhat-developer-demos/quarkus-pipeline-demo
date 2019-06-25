@@ -164,6 +164,11 @@ curl -L  https://raw.githubusercontent.com/knative/serving/release-0.6/third_par
 
 Wait for the Istio Pods to come up 
 
+[source,bash]
+----
+kubectl get pods --namespace isito-system -w 
+----
+
 NOTE: You can terminate the command with kbd:[CTRL+c]
 
 [source,bash]

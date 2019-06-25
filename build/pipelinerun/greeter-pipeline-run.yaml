@@ -10,9 +10,9 @@ spec:
     - name: namespace
       value: demos
     - name: resourceDir
-      default: "knative"
+      value: "knative"
     - name: resourceFile
-      default: "service.yaml"
+      value: "service.yaml"
   resources:
     - name: source-repo
       resourceRef:

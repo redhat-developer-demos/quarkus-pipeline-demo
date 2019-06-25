@@ -14,13 +14,13 @@ spec:
       default: /workspace/git-source
       description: The Docker build context Dir
     - name: resourceDir
+      default: "kubernetes"
       description: >-
         The path to Kubernetes resource file directory to create the resources.
         All the YAML files in the directory will be recursively applied
-      default: "kubernetes"
     - name: resourceFile
       description: The Kubernetes resource file
-      default: "deployment.yaml"
+      default: "/deployment.yaml"
     - name: yamlPath
       description: The YAML image path i.e. the container image that is built as part of the build
       default: "spec.template.spec.containers[0].image"
@@ -39,7 +39,7 @@ spec:
       args:
         - "w"
         - "-i"
-        - "${inputs.params.resourceDir}/${inputs.params.resourceFile}"   
+        - "${inputs.params.resourceDir}/${inputs.params.resourceFile}"
         - "${inputs.params.yamlPath}"
         - "${inputs.resources.containerImage.url}"
         - "${inputs.params.docs}"

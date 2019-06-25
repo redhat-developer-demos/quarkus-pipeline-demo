@@ -14,13 +14,13 @@ spec:
         imagePullPolicy: Always
         resources:
           limits:
-            memory: "128Mi"
-            cpu: "500m"
+            memory: "64Mi"
+            cpu: "100m"
         ports:
         - containerPort: 8080
         livenessProbe:
           httpGet:
-            port: 8080
+            path: /health
         readinessProbe:
           httpGet:
             path: /health

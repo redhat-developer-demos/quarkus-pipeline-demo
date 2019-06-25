@@ -1,0 +1,23 @@
+apiVersion: tekton.dev/v1alpha1
+kind: TaskRun
+metadata:
+  name: update-and-apply
+spec:
+  taskRef:
+    name: kubectl-task
+  inputs:
+    resources:
+      - name: git-source
+        resourceRef:
+          name: demo-git-source
+      - name: containerImage
+        resourceRef:
+          name: greeter-local-image-jvm
+    params:
+    - name: namespace
+      value: demos
+    - name: resourceDir
+      value: "knative"
+    - name: resourceFile
+      value: "service.yaml"
+  outputs: {}
