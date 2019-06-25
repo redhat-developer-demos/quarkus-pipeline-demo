@@ -51,11 +51,7 @@ spec:
       volumeMounts:
         - mountPath: /root/.m2
           name: m2-cache
-        - name: varlibcontainers
-          mountPath: /var/lib/containers
  volumes:
     - name: m2-cache
       persistentVolumeClaim:
         claimName: m2-cache
-    - name: varlibcontainers
-      emptyDir: {}

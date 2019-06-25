@@ -24,9 +24,14 @@ spec:
      - name: contextDir
        default: /workspace/git-source
        description: The Docker build context Dir
+     - name: resourceDir
+       description: >-
+        The path to Kubernetes resource file directory to create the resources.
+        All the YAML files in the directory will be recursively applied
+       default: "kubernetes"
      - name: resourceFile
        description: The path to Kubernetes resource file relative to sources
-       default: "kubernetes/deployment.yaml"
+       default: "deployment.yaml"
      - name: yamlPath
        description: The YAML image path 
        default: "spec.template.spec.containers[0].image"
@@ -61,7 +66,9 @@ spec:
         name: kubectl-task
       params: 
       - name: contextDir
-        value: "${params.mavenMirrorUrl}"
+        value: "${params.contextDir}"
+      - name: resourceDir
+        value: "${params.resourceDir}"
       - name: resourceFile
         value: "${params.resourceFile}"
       - name: yamlPath

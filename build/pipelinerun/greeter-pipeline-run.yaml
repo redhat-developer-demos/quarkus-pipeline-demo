@@ -7,10 +7,12 @@ spec:
   pipelineRef:
     name: greeter-pipeline-jvm
   params:
-    - name: mavenMirrorUrl
-      value: http://192.168.99.1:8081/nexus/content/groups/public
     - name: namespace
       value: demos
+    - name: resourceDir
+      default: "knative"
+    - name: resourceFile
+      default: "service.yaml"
   resources:
     - name: source-repo
       resourceRef:

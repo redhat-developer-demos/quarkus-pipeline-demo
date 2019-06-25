@@ -11,13 +11,16 @@
 
 [source,bash]
 ----
-minikube start \
- --container-runtime=cri-o \
- --insecure-registry="10.0.0.0/24" \
- --memory=8192 --cpus=6 --disk-size=50G \ #<1>
+minikube start --memory=8192 --cpus=6 --disk-size=50G  \
+ --kubernetes-version=v1.12.0 \
+ --vm-driver=hyperkit \
  --extra-config=apiserver.enable-admission-plugins="LimitRanger,NamespaceExists,NamespaceLifecycle,ResourceQuota,ServiceAccount,DefaultStorageClass,MutatingAdmissionWebhook"
 ----
-<1> By default minikube uses 10GB and 6cpus, if you have enough capacity then you can skip this setting
+
+[IMPORTANT]
+====
+This setup and example works well with minikube v1.1.1, the registry hack below is not working as expected with v1.2.0.
+====
 
 == Enable registry addon 
 
@@ -73,7 +76,7 @@ kubectl apply -n kube-system -f node-etc-hosts-update.yaml
  * The daemonset may take few minutes to run and complete.
 ====
 
-You can check the mikikube vm's `/etc/hosts` file for the registry aliases entries:
+You can check the minikube vm's `/etc/hosts` file for the registry aliases entries:
 
 [source,bash]
 ----
@@ -132,7 +135,25 @@ kubectl get cm -n kube-system coredns -o yaml
 
 Once you have successfully patched you can now push and pull from the registry using suffix `dev.local`, `example.com`
 
+== Install Tekton Pipelines
+
+[source,bash]
+----
+kubectl apply --filename https://storage.googleapis.com/tekton-releases/latest/release.yaml
+----
+
+Wait for the Tekton Pipelines Pods to come up 
+
+[source,bash]
+----
+kubectl get pods --namespace tekton-pipelines -w 
+----
+
+NOTE: You can terminate the command with kbd:[CTRL+c]
+
 == Install Knative Serving 
+
+NOTE: This section is optional, if and only if you wish to deploy Knative services
 
 [source,bash]
 ----
@@ -157,22 +178,6 @@ Wait for the  Knative Serving Pods to come up
 [source,bash]
 ----
 kubectl get pods --namespace knative-serving -w 
-----
-
-NOTE: You can terminate the command with kbd:[CTRL+c]
-
-== Install Tekton Pipelines
-
-[source,bash]
-----
-kubectl apply --filename https://storage.googleapis.com/tekton-releases/latest/release.yaml
-----
-
-Wait for the Tekton Pipelines Pods to come up 
-
-[source,bash]
-----
-kubectl get pods --namespace tekton-pipelines -w 
 ----
 
 NOTE: You can terminate the command with kbd:[CTRL+c]
@@ -251,8 +256,13 @@ Let's create the pipelinerun that uses the one of pipelines e.g. **greeter-pipel
 
 [source,bash]
 ----
-kubectl apply --recursive -f $PROJECT_HOME/build/pipelinerun/greeter-pipeline-run.yaml
+kubectl apply  -f $PROJECT_HOME/build/pipelinerun/greeter-pipeline-run.yaml
 ----
+
+[TIP]
+====
+If you want to do a native build then update the `pipelineRef` in `greeter-pipeline-run.yaml` to be `greeter-pipeline-native`
+====
 
 You can use the command `tkn pipelinerun list`  to list the created tasks. The command above should show the following pipeline:
 
@@ -267,7 +277,7 @@ NOTE: The very first pipeline run may take sometime, as the builder images needs
 
 [TIP]
 ====
-If you have a local maven repo manager like Nexus then you can configure the pipeline to use it via the param `mavenMirrorUrl`
+If you have a local maven repo manager like https://www.sonatype.com/nexus-repository-sonatype[Nexus] then you can configure the pipeline to use it via the param `mavenMirrorUrl`
 e.g.
 [source,yaml]
 ----
@@ -284,4 +294,52 @@ A successful pipeline run will deploy an application called "greeter" and a corr
 ----
 kubectl get -n demos deployments
 kubectl get -n demos services
+----
+
+== Deploying Knative Service
+
+To deploy Knative service using the same pipelines, edit the ./build/pipelinerun/greeter-pipeline-run.yaml and update it to look like:
+
+[source,yaml]
+----
+apiVersion: tekton.dev/v1alpha1
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineRun
+metadata:
+  name: greeter-pipeline-run
+spec:
+  serviceAccount: build-robot
+  pipelineRef:
+    name: greeter-pipeline-jvm
+  params:
+    - name: namespace
+      value: demos
+    - name: resourceDir #<1>
+      default: "knative"
+    - name: resourceFile
+      default: "service.yaml" #<2>
+  resources:
+    - name: source-repo
+      resourceRef:
+        name: demo-git-source
+    - name: app-container-image
+      resourceRef:
+        name: greeter-local-image-jvm
+----
+<1> The kubernetes resource directory
+<2> The Knative service yaml file 
+
+Recreate the pipelines
+
+[source,bash]
+----
+kubectl delete -f $PROJECT_HOME/build/pipelinerun/greeter-pipeline-run.yaml && \
+kubectl apply -f $PROJECT_HOME/build/pipelinerun/greeter-pipeline-run.yaml
+----
+
+== Cleanup 
+[source,bash]
+----
+kubectl delete --recursive -f $PROJECT_HOME/build
+kubens - 
 ----
